@@ -15,16 +15,20 @@ This is a simple Chrome extension that uses the OpenAI ChatGPT API to summarize 
 This extension requires an OpenAI API key to function. Here's how to set it up:
 
 1. Navigate to the [OpenAI website](https://www.openai.com/) and create an account if you don't have one already.
-2. Once you're logged in, go to the API section and generate a new API key.
-3. Copy the API key.
-4. Click on the extension icon in your Chrome browser and select "Options".
-5. Paste your API key into the text field and click "Save".
+2. Once you're logged in, go to the API section and generate a new API key [here](https://platform.openai.com/account/api-keys).
+3. Click on the extension icon in your Chrome browser and paste your API key into the text field, then click "Save".
 
 Your extension is now ready to use! Simply select some text on a webpage, right-click, and choose "Summarize with ChatGPT" to see a summary of the selected text.
 
+<div>
+<img src="./screenshots/step1.png" width="31%" alt="Paste API key in browser popup">
+<img src="./screenshots/step2.png" width="31%" alt="Select text and choose OpenAI API Explorer">
+<img src="./screenshots/step3.png" width="31%" alt="Wait couple of seconds and see summary in popup">
+</div>
+
 ## Security
 
-Please note that your OpenAI API key is sensitive information and should be kept secure. This extension stores your API key in Chrome's local storage, which is not accessible by other extensions or webpages. However, you should still be careful not to expose your API key in any public or insecure environments.
+Please note that your OpenAI API key is sensitive information and should be kept secure. This extension stores your API key in Chrome's local storage, which is not accessible by other extensions or webpages. 
 
 ## Rate Limiting
 
