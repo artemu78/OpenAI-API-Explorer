@@ -1,4 +1,4 @@
-# ChatGPT Summarizer Chrome Extension
+# OpenAI API Explorer Chrome Extension
 
 This is a simple Chrome extension that uses the OpenAI ChatGPT API to summarize selected text on a webpage. The summarized text is then displayed in an alert.
 
