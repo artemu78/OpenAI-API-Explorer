@@ -1,13 +1,14 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>ChatGPT Summarizer Options</title>
+    <title>OpenAI API Explorer</title>
     <style>
       body {
         font-family: Arial, sans-serif;
         margin: 0;
-        padding: 0;
+        padding: 20px;
         background-color: #f0f0f0;
+        width: 470px;
       }
       h1 {
         color: #333;
@@ -18,22 +19,22 @@
       }
       label {
         display: block;
-        margin: 20px;
+        margin-top: 20px;
       }
       input[type="text"] {
         width: 90%;
         padding: 10px;
-        margin: 20px;
         border: 1px solid #ddd;
         border-radius: 5px;
+        margin-top: 20px;
       }
       input[type="button"] {
         padding: 10px 20px;
-        margin: 20px;
         background-color: #007BFF;
         color: #fff;
         border: none;
         border-radius: 5px;
+        margin-top: 20px;
         cursor: pointer;
       }
       input[type="button"]:hover {
@@ -47,8 +48,8 @@
     <script src="options.js"></script>
   </head>
   <body>
-    <h1>ChatGPT Summarizer Options</h1>
-    <label for="apiKey">OpenAI API Key:</label>
+    <nobr><h1>OpenAI API Explorer</h1></nobr>
+    <label for="apiKey">OpenAI API Key (<a href="https://platform.openai.com/account/api-keys" _target="blank">link</a>):</label>
     <input type="text" id="apiKey" name="apiKey">
     <input type="button" value="Save" id="saveButton">
     <div id="status"></div>
