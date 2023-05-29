@@ -165,6 +165,7 @@ try {
       chrome.storage.sync.get(
         {
           openAIKey: "",
+          maxTokens: 1000,
         },
         function (items) {
           if (!items.openAIKey) {
@@ -175,6 +176,8 @@ try {
           }
           chrome.tabs.sendMessage(tab.id, { openaiapiWAIT: true });
           const requestBody = fetchConfig(info.menuItemId, info.selectionText);
+          requestBody.max_tokens = (items.maxTokens && parseInt(items.maxTokens)) || 1000;
+          // console.log({requestBody});
           fetch("https://api.openai.com/v1/completions", {
             method: "POST",
             headers: {
