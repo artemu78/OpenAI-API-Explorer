@@ -28,9 +28,16 @@
         border-radius: 5px;
         margin-top: 20px;
       }
+      select {
+        width: 90%;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        margin-top: 20px;
+      }
       input[type="button"] {
         padding: 10px 20px;
-        background-color: #007BFF;
+        background-color: #007bff;
         color: #fff;
         border: none;
         border-radius: 5px;
@@ -49,9 +56,35 @@
   </head>
   <body>
     <nobr><h1>OpenAI API Explorer</h1></nobr>
-    <label for="apiKey">OpenAI API Key (<a href="https://platform.openai.com/account/api-keys" _target="blank">link</a>):</label>
-    <input type="text" id="apiKey" name="apiKey">
-    <input type="button" value="Save" id="saveButton">
+    <label for="apiKey"
+      >OpenAI API Key (<a
+        href="https://platform.openai.com/account/api-keys"
+        _target="blank"
+        >link</a
+      >):</label
+    >
+    <input type="text" id="apiKey" name="apiKey" />
+    <hr />
+    <label for="maxTokens"
+      ><a
+        href="https://platform.openai.com/docs/api-reference/completions/create#completions/create-max_tokens"
+        _target="blank"
+        >Tokens limit</a
+      >
+      maximum amount of tokens including input prompt and server response. See
+      <a href="https://platform.openai.com/tokenizer" _target="blank"
+        >tokens calculation</a
+      >.</label
+    >
+    <input type="text" id="maxTokens" name="maxTokens" />
+    <hr />
+    <label for="theme">Theme:</label>
+    <select id="theme">
+      <option value="light">Light</option>
+      <option value="dark">Dark</option>
+    </select>
+    <br />
+    <input type="button" value="Save" id="saveButton" />
     <div id="status"></div>
   </body>
 </html>

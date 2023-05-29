@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "OpenAI API Explorer",
-  "version": "1.0",
+  "version": "1.2.0",
   "permissions": ["contextMenus", "storage", "activeTab"],
   "description": "This extension provides a simple interface for exploring the capabilities of the OpenAI API.",
   "icons": {

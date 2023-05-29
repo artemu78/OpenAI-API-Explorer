@@ -4,6 +4,21 @@ const PROMPT_STUB = "<<prompt>>";
 // Define the menu items
 const menuItems = [
   { id: `${MENU_ITEM_PREFIX}Parent`, title: "OpenAI API Explorer" },
+  // {
+  //   id: `openaiapiWAIT`,
+  //   parentId: `${MENU_ITEM_PREFIX}Parent`,
+  //   title: "Wait",
+  // },
+  // {
+  //   id: `openaiapiERROR`,
+  //   parentId: `${MENU_ITEM_PREFIX}Parent`,
+  //   title: "Error",
+  // },
+  // {
+  //   id: `openaiapiSAMPLE`,
+  //   parentId: `${MENU_ITEM_PREFIX}Parent`,
+  //   title: "Sample",
+  // },
   {
     id: `${MENU_ITEM_PREFIX}child1`,
     parentId: `${MENU_ITEM_PREFIX}Parent`,
@@ -12,32 +27,82 @@ const menuItems = [
       model: "text-davinci-003",
       prompt: `Summarize this for a second-grade student:\n\n${PROMPT_STUB}`,
       temperature: 0.7,
-      max_tokens: 64,
+      max_tokens: 264,
       top_p: 1.0,
       frequency_penalty: 0.0,
       presence_penalty: 0.0,
     },
   },
-  // {
-  //   id: `${MENU_ITEM_PREFIX}child2`,
-  //   parentId: `${MENU_ITEM_PREFIX}Parent`,
-  //   title: "Child 2",
-  // },
-  // {
-  //   id: `${MENU_ITEM_PREFIX}child3`,
-  //   parentId: `${MENU_ITEM_PREFIX}Parent`,
-  //   title: "Child 3",
-  // },
-  // {
-  //   id: `${MENU_ITEM_PREFIX}child4`,
-  //   parentId: `${MENU_ITEM_PREFIX}Parent`,
-  //   title: "Child 4",
-  // },
-  // {
-  //   id: `${MENU_ITEM_PREFIX}child5`,
-  //   parentId: `${MENU_ITEM_PREFIX}Parent`,
-  //   title: "Child 5",
-  // },
+  {
+    id: `${MENU_ITEM_PREFIX}answer`,
+    parentId: `${MENU_ITEM_PREFIX}Parent`,
+    title: "Answer the question",
+    config: {
+      model: "text-davinci-003",
+      prompt: `Answer the question please:\n\n${PROMPT_STUB}`,
+      temperature: 0.7,
+      max_tokens: 264,
+      top_p: 1.0,
+      frequency_penalty: 0.0,
+      presence_penalty: 0.0,
+    },
+  },
+  {
+    id: `${MENU_ITEM_PREFIX}child2`,
+    parentId: `${MENU_ITEM_PREFIX}Parent`,
+    title: "Grammar correction",
+    config: {
+      model: "text-davinci-003",
+      prompt: `Correct this to standard English:\n\n${PROMPT_STUB}`,
+      temperature: 0,
+      max_tokens: 260,
+      top_p: 1.0,
+      frequency_penalty: 0.0,
+      presence_penalty: 0.0,
+    },
+  },
+  {
+    id: `${MENU_ITEM_PREFIX}child3`,
+    parentId: `${MENU_ITEM_PREFIX}Parent`,
+    title: "Extract keywords",
+    config: {
+      model: "text-davinci-003",
+      prompt: `Extract keywords from this text:\n\n${PROMPT_STUB}`,
+      temperature: 0.5,
+      max_tokens: 260,
+      top_p: 1.0,
+      frequency_penalty: 0.8,
+      presence_penalty: 0.0,
+    },
+  },
+  {
+    id: `${MENU_ITEM_PREFIX}child4`,
+    parentId: `${MENU_ITEM_PREFIX}Parent`,
+    title: "TL;DR summarization",
+    config: {
+      model: "text-davinci-003",
+      prompt: `${PROMPT_STUB}\n\nTl;dr`,
+      temperature: 0.7,
+      max_tokens: 260,
+      top_p: 1.0,
+      frequency_penalty: 0.0,
+      presence_penalty: 1,
+    },
+  },
+  {
+    id: `${MENU_ITEM_PREFIX}child5`,
+    parentId: `${MENU_ITEM_PREFIX}Parent`,
+    title: "Analogy maker",
+    config: {
+      model: "text-davinci-003",
+      prompt: `Create an analogy for this phrase:\n\n${PROMPT_STUB}`,
+      temperature: 0.5,
+      max_tokens: 260,
+      top_p: 1.0,
+      frequency_penalty: 0.0,
+      presence_penalty: 0.0,
+    },
+  },
   // {
   //   id: `${MENU_ITEM_PREFIX}child6`,
   //   parentId: `${MENU_ITEM_PREFIX}Parent`,
@@ -83,6 +148,19 @@ try {
   });
 
   chrome.contextMenus.onClicked.addListener((info, tab) => {
+    if (info.menuItemId === "openaiapiWAIT") {
+      chrome.tabs.sendMessage(tab.id, { openaiapiWAIT: true });
+    }
+    if (info.menuItemId === "openaiapiERROR") {
+      chrome.tabs.sendMessage(tab.id, {
+        openaiapiERROR: "Something goes wrong",
+      });
+    }
+    if (info.menuItemId === "openaiapiSAMPLE") {
+      chrome.tabs.sendMessage(tab.id, {
+        summary: "Lorem ipsum dolor sit amet",
+      });
+    }
     if (info.menuItemId.startsWith(MENU_ITEM_PREFIX)) {
       chrome.storage.sync.get(
         {
@@ -91,10 +169,11 @@ try {
         function (items) {
           if (!items.openAIKey) {
             chrome.tabs.sendMessage(tab.id, {
-              summary: "Please set OPEN AI KEY in extension options",
+              openaiapiERROR: "Please set OPEN AI KEY in extension options",
             });
             return;
           }
+          chrome.tabs.sendMessage(tab.id, { openaiapiWAIT: true });
           const requestBody = fetchConfig(info.menuItemId, info.selectionText);
           fetch("https://api.openai.com/v1/completions", {
             method: "POST",
@@ -107,7 +186,9 @@ try {
             .then((response) => {
               if (!response.ok) {
                 console.log("response is broken", response);
-                throw new Error("Network response was not ok");
+                throw new Error(
+                  `Network response was not ok. Response status ${response.status}`
+                );
               }
               return response.json();
             })
@@ -117,7 +198,10 @@ try {
               });
             })
             .catch((error) => {
-              console.error("Error:", error);
+              chrome.tabs.sendMessage(tab.id, {
+                openaiapiERROR: error.message,
+              });
+              console.error("Error:", error.message);
             });
         }
       );
