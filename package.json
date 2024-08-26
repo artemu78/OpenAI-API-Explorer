@@ -1,0 +1,26 @@
+{
+  "name": "openai-api-explorer",
+  "version": "1.4.7",
+  "description": "Chrome extension for web page text manipulation with Open AI models",
+  "main": "background.js",
+  "devDependencies": {
+    "@types/chrome": "^0.0.270",
+    "esbuild": "^0.23.1",
+    "typescript": "^5.5.4"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "node build.js",
+    "postbuild": "node bump-version.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/artemu78/OpenAI-API-Explorer.git"
+  },
+  "author": "Artem",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/artemu78/OpenAI-API-Explorer/issues"
+  },
+  "homepage": "https://github.com/artemu78/OpenAI-API-Explorer#readme"
+}

@@ -1,8 +1,12 @@
 {
   "manifest_version": 3,
   "name": "OpenAI API Explorer",
-  "version": "1.2.0",
-  "permissions": ["contextMenus", "storage", "activeTab"],
+  "version": "1.4.7",
+  "permissions": [
+    "contextMenus",
+    "storage",
+    "activeTab"
+  ],
   "description": "This extension provides a simple interface for exploring the capabilities of the OpenAI API.",
   "icons": {
     "48": "icons/icon48.png"
@@ -16,13 +20,17 @@
     }
   },
   "background": {
-    "service_worker": "background.js"
+    "service_worker": "out.js"
   },
   "options_page": "options.html",
   "content_scripts": [
     {
-      "matches": ["<all_urls>"],
-      "js": ["content.js"]
+      "matches": [
+        "<all_urls>"
+      ],
+      "js": [
+        "content.js"
+      ]
     }
   ]
 }

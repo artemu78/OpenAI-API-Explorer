@@ -173,89 +173,108 @@ ${PROMPT_STUB}` }],
     // },
   ];
 
-  // options.ts
-  function FillElementsWithData(items) {
-    document.getElementById("apiKey").value = items.openAIKey;
-    document.getElementById("theme").value = items.theme || "light";
-    document.getElementById("maxTokens").value = items.maxTokens || 1e3;
-    document.getElementById("menuitem1").value = items.menuitem1 || "";
-    document.getElementById("menuitem1name").value = items.menuitem1name || "";
-    document.getElementById("menuitem2").value = items.menuitem2 || "";
-    document.getElementById("menuitem2name").value = items.menuitem2name || "";
-    document.getElementById("model").value = items.model || "gpt-4o-mini";
+  // background.ts
+  var OPENAI_URL = "https://api.openai.com/v1/chat/completions";
+  var fetchConfig = (findMenuId, selectionText, items) => {
+    const { config } = menuItems.filter(({ id }) => id === findMenuId)[0];
+    config && (config.messages[0].content = config.messages[0].content.replace(
+      PROMPT_STUB,
+      selectionText
+    ));
+    ["menuitem1", "menuitem2"].forEach((menuItemId) => {
+      if (findMenuId === `${MENU_ITEM_PREFIX}${menuItemId}` && config) {
+        config.messages[0].content = items[menuItemId] + "\n\n" + selectionText;
+      }
+    });
+    return config;
+  };
+  function createMenuItem(item) {
+    chrome.contextMenus.create(
+      {
+        id: item.id,
+        parentId: item.parentId,
+        title: item.title,
+        contexts: ["selection"],
+        visible: item.visible
+      },
+      function() {
+        if (chrome.runtime.lastError) {
+          console.error(chrome.runtime.lastError.message);
+        }
+      }
+    );
   }
-  document.addEventListener("DOMContentLoaded", function() {
-    function restore_options() {
-      chrome.storage.sync.get(
-        {
+  try {
+    chrome.runtime.onInstalled.addListener(function() {
+      for (var i = 0; i < menuItems.length; i++) {
+        createMenuItem(menuItems[i]);
+      }
+    });
+    chrome.contextMenus.onClicked.addListener(async (info, tab) => {
+      const tabId = tab?.id || 0;
+      if (info.menuItemId === "openaiapiWAIT") {
+        chrome.tabs.sendMessage(tabId, { openaiapiWAIT: true });
+      }
+      if (info.menuItemId === "openaiapiERROR") {
+        chrome.tabs.sendMessage(tabId, {
+          openaiapiERROR: "Something goes wrong"
+        });
+      }
+      if (info.menuItemId === "openaiapiSAMPLE") {
+        chrome.tabs.sendMessage(tabId, {
+          summary: "Lorem ipsum dolor sit amet"
+        });
+      }
+      if (info.menuItemId.toString().startsWith(MENU_ITEM_PREFIX)) {
+        const items = await chrome.storage.sync.get({
           openAIKey: "",
-          theme: "",
-          maxTokens: "",
+          maxTokens: 1e3,
+          model: "gpt-4o-mini",
           menuitem1: "",
-          menuitem1name: "Custom item 1",
-          menuitem2: "",
-          menuitem2name: "Custom item 2",
-          model: ""
-        },
-        FillElementsWithData
-      );
-    }
-    restore_options();
-    function save_options() {
-      const theme = document.getElementById("theme").value;
-      const openAIKey = document.getElementById("apiKey").value;
-      const maxTokens = document.getElementById("maxTokens").value;
-      const menuitem1 = document.getElementById("menuitem1").value;
-      const menuitem1name = document.getElementById("menuitem1name").value;
-      const menuitem2 = document.getElementById("menuitem2").value;
-      const menuitem2name = document.getElementById("menuitem2name").value;
-      const model = document.getElementById("model").value;
-      const saveObject = {
-        openAIKey,
-        theme,
-        maxTokens,
-        menuitem1,
-        menuitem1name,
-        menuitem2,
-        menuitem2name,
-        model
-      };
-      chrome.storage.sync.set(saveObject, function() {
-        const status = document.getElementById("status");
-        status && (status.textContent = "Options saved.");
-        setTimeout(function() {
-          status && (status.textContent = "");
-        }, 3e3);
-      });
-      chrome.contextMenus.update(
-        `${MENU_ITEM_PREFIX}menuitem1`,
-        {
-          visible: !!menuitem1,
-          title: menuitem1name
+          menuitem2: ""
+        });
+        if (!items.openAIKey) {
+          chrome.tabs.sendMessage(tabId, {
+            openaiapiERROR: "Please set OPEN AI KEY in the extension options, please find instructions in option window"
+          });
+          return;
         }
-      );
-      chrome.contextMenus.update(
-        `${MENU_ITEM_PREFIX}menuitem2`,
-        {
-          visible: !!menuitem2,
-          title: menuitem2name
-        }
-      );
-    }
-    function clear_options() {
-      FillElementsWithData({
-        openAIKey: "",
-        theme: "",
-        maxTokens: "",
-        menuitem1: "",
-        menuitem1name: "",
-        menuitem2: "",
-        menuitem2name: "",
-        model: ""
-      });
-      chrome.storage.sync.clear();
-    }
-    document.getElementById("saveButton")?.addEventListener("click", save_options);
-    document.getElementById("clearButton")?.addEventListener("click", clear_options);
-  });
+        chrome.tabs.sendMessage(tabId, { openaiapiWAIT: true });
+        const requestBody = fetchConfig(
+          info.menuItemId.toString(),
+          info.selectionText || "",
+          items
+        );
+        requestBody && items.maxTokens && (requestBody.max_tokens = parseInt(items.maxTokens));
+        requestBody && items.model && (requestBody.model = items.model);
+        fetch(OPENAI_URL, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: "Bearer " + items.openAIKey
+          },
+          body: JSON.stringify(requestBody)
+        }).then((response) => {
+          if (!response.ok) {
+            console.log("response is broken", response);
+            throw new Error(
+              `Network response was not ok. Response status ${response.status}`
+            );
+          }
+          return response.json();
+        }).then((data) => {
+          chrome.tabs.sendMessage(tabId, {
+            summary: (data?.choices[0]?.message?.content?.trim() || "") + (data?.choices[0]?.message?.refusal?.trim() || "")
+          });
+        }).catch((error) => {
+          chrome.tabs.sendMessage(tabId, {
+            openaiapiERROR: error.message
+          });
+          console.error("Fetch error:", error.message);
+        });
+      }
+    });
+  } catch (e) {
+    console.log("ChatGPT summarizer service worker error", e);
+  }
 })();

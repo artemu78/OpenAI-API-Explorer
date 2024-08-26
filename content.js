@@ -14,7 +14,7 @@ function showWaitModal() {
 }
 
 function showErrorModal(message) {
-  let popup = createModalWithButton({ x: "400px", y: "300px" });
+  const popup = createModalWithButton({ x: "400px", y: "300px" });
   popup.classList.add("error");
   const contentElement = document.createElement("div");
   contentElement.textContent = message;
@@ -22,7 +22,7 @@ function showErrorModal(message) {
 }
 
 function showResponseModal(message) {
-  popup = createModalWithButton({ x: "400px", y: "200px" });
+  const popup = createModalWithButton({ x: "400px", y: "200px" });
   const contentElement = document.createElement("div");
   contentElement.textContent = message;
   popup.insertBefore(contentElement, popup.firstChild);
@@ -32,7 +32,7 @@ function createModalWithButton(size) {
   let popup = createModal(size);
 
   // Add a close button to the popup
-  var closeButton = document.createElement("button");
+  const closeButton = document.createElement("button");
   closeButton.textContent = "Close";
   closeButton.style.display = "block";
   closeButton.style.marginTop = "10px";
@@ -59,7 +59,7 @@ function createModal(size) {
   openaiapiexpPopup.style.zIndex = "10000";
   openaiapiexpPopup.style.maxHeight = size.y;
   openaiapiexpPopup.style.maxWidth = size.x;
-  openaiapiexpPopup.style.wordWrap = "break-word";
+  openaiapiexpPopup.style.overflow = "auto";
 
   chrome.storage.sync.get("theme", function (data) {
     var theme = data.theme || "light";
