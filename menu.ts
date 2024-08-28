@@ -1,5 +1,6 @@
 export const MENU_ITEM_PREFIX = "openaiapiexp";
-export const PROMPT_STUB = "<<prompt>>";
+export const SELECTED_TEXT = "<<selection>>";
+export const USER_QUESTION = "<<user_question>>"
 
 // Define the menu items
 export const menuItems = [
@@ -18,12 +19,6 @@ export const menuItems = [
     //   visible: true, 
     // title: "Error",
     // },
-    // {
-    //   id: `openaiapiSAMPLE`,
-    //   parentId: `${MENU_ITEM_PREFIX}Parent`,
-    //   visible: true, 
-    // title: "Sample",
-    // },
     {
       id: `${MENU_ITEM_PREFIX}child1`,
       parentId: `${MENU_ITEM_PREFIX}Parent`,
@@ -31,7 +26,7 @@ export const menuItems = [
       title: "Summarize",
       config: {
         model: "gpt-4o-mini",
-        messages: [{role: "user", content: `Summarize this for a second-grade student:\n\n${PROMPT_STUB}`}],
+        messages: [{role: "user", content: `Summarize this for a second-grade student:\n\n${SELECTED_TEXT}`}],
         temperature: 0.7,
         max_tokens: 264,
         top_p: 1.0,
@@ -46,7 +41,7 @@ export const menuItems = [
       title: "Answer the question",
       config: {
         model: "gpt-4o-mini",
-        messages: [{role: "user", content: `Answer the question please:\n\n${PROMPT_STUB}`}],
+        messages: [{role: "user", content: `Answer the question please:\n\n${SELECTED_TEXT}`}],
         temperature: 0.7,
         max_tokens: 264,
         top_p: 1.0,
@@ -61,7 +56,7 @@ export const menuItems = [
       title: "Grammar correction",
       config: {
         model: "gpt-4o-mini",
-        messages: [{role: "user", content: `Correct this to standard English:\n\n${PROMPT_STUB}`}],
+        messages: [{role: "user", content: `Correct this to standard English:\n\n${SELECTED_TEXT}`}],
         temperature: 0,
         max_tokens: 260,
         top_p: 1.0,
@@ -76,7 +71,7 @@ export const menuItems = [
       title: "Extract keywords",
       config: {
         model: "gpt-4o-mini",
-        messages: [{role: "user", content: `Extract keywords from this text:\n\n${PROMPT_STUB}`}],
+        messages: [{role: "user", content: `Extract keywords from this text:\n\n${SELECTED_TEXT}`}],
         temperature: 0.5,
         max_tokens: 260,
         top_p: 1.0,
@@ -91,7 +86,7 @@ export const menuItems = [
       title: "TL;DR summarization",
       config: {
         model: "gpt-4o-mini",
-        messages: [{role: "user", content: `${PROMPT_STUB}\n\nTl;dr`}],
+        messages: [{role: "user", content: `${SELECTED_TEXT}\n\nTl;dr`}],
         temperature: 0.7,
         max_tokens: 260,
         top_p: 1.0,
@@ -106,7 +101,7 @@ export const menuItems = [
       title: "Analogy maker",
       config: {
         model: "gpt-4o-mini",
-        messages: [{role: "user", content: `Create an analogy for this phrase:\n\n${PROMPT_STUB}`}],
+        messages: [{role: "user", content: `Create an analogy for this phrase:\n\n${SELECTED_TEXT}`}],
         temperature: 0.5,
         max_tokens: 260,
         top_p: 1.0,
@@ -137,6 +132,29 @@ export const menuItems = [
         config: {
             model: "gpt-4o-mini",
             messages: [{role: "user", content: ``}],
+            temperature: 0.5,
+            max_tokens: 260,
+            top_p: 1.0,
+            frequency_penalty: 0.8,
+            presence_penalty: 0.0,
+          },
+    },
+    {
+        id: `openaiapiAsk`,
+        parentId: `${MENU_ITEM_PREFIX}Parent`,
+        visible: true,
+        title: "Ask question about selected text",
+    },
+    {
+        id: `${MENU_ITEM_PREFIX}openaiapiAsk`,
+        parentId: `${MENU_ITEM_PREFIX}Parent`,
+        visible: false,
+        title: "Ask question about selected text",
+        config: {
+            model: "gpt-4o-mini",
+            messages: [{role: "user", content: `I'm going to provide a text excerpt below. Please read it carefully.
+Text Excerpt: ${SELECTED_TEXT}
+Based on the text provided, please answer the following question: ${USER_QUESTION}`}],
             temperature: 0.5,
             max_tokens: 260,
             top_p: 1.0,

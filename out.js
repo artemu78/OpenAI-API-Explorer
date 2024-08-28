@@ -2,7 +2,8 @@
 (() => {
   // menu.ts
   var MENU_ITEM_PREFIX = "openaiapiexp";
-  var PROMPT_STUB = "<<prompt>>";
+  var SELECTED_TEXT = "<<selection>>";
+  var USER_QUESTION = "<<user_question>>";
   var menuItems = [
     {
       id: `${MENU_ITEM_PREFIX}Parent`,
@@ -21,12 +22,6 @@
     //   visible: true, 
     // title: "Error",
     // },
-    // {
-    //   id: `openaiapiSAMPLE`,
-    //   parentId: `${MENU_ITEM_PREFIX}Parent`,
-    //   visible: true, 
-    // title: "Sample",
-    // },
     {
       id: `${MENU_ITEM_PREFIX}child1`,
       parentId: `${MENU_ITEM_PREFIX}Parent`,
@@ -36,7 +31,7 @@
         model: "gpt-4o-mini",
         messages: [{ role: "user", content: `Summarize this for a second-grade student:
 
-${PROMPT_STUB}` }],
+${SELECTED_TEXT}` }],
         temperature: 0.7,
         max_tokens: 264,
         top_p: 1,
@@ -53,7 +48,7 @@ ${PROMPT_STUB}` }],
         model: "gpt-4o-mini",
         messages: [{ role: "user", content: `Answer the question please:
 
-${PROMPT_STUB}` }],
+${SELECTED_TEXT}` }],
         temperature: 0.7,
         max_tokens: 264,
         top_p: 1,
@@ -70,7 +65,7 @@ ${PROMPT_STUB}` }],
         model: "gpt-4o-mini",
         messages: [{ role: "user", content: `Correct this to standard English:
 
-${PROMPT_STUB}` }],
+${SELECTED_TEXT}` }],
         temperature: 0,
         max_tokens: 260,
         top_p: 1,
@@ -87,7 +82,7 @@ ${PROMPT_STUB}` }],
         model: "gpt-4o-mini",
         messages: [{ role: "user", content: `Extract keywords from this text:
 
-${PROMPT_STUB}` }],
+${SELECTED_TEXT}` }],
         temperature: 0.5,
         max_tokens: 260,
         top_p: 1,
@@ -102,7 +97,7 @@ ${PROMPT_STUB}` }],
       title: "TL;DR summarization",
       config: {
         model: "gpt-4o-mini",
-        messages: [{ role: "user", content: `${PROMPT_STUB}
+        messages: [{ role: "user", content: `${SELECTED_TEXT}
 
 Tl;dr` }],
         temperature: 0.7,
@@ -121,7 +116,7 @@ Tl;dr` }],
         model: "gpt-4o-mini",
         messages: [{ role: "user", content: `Create an analogy for this phrase:
 
-${PROMPT_STUB}` }],
+${SELECTED_TEXT}` }],
         temperature: 0.5,
         max_tokens: 260,
         top_p: 1,
@@ -158,6 +153,29 @@ ${PROMPT_STUB}` }],
         frequency_penalty: 0.8,
         presence_penalty: 0
       }
+    },
+    {
+      id: `openaiapiAsk`,
+      parentId: `${MENU_ITEM_PREFIX}Parent`,
+      visible: true,
+      title: "Ask question about selected text"
+    },
+    {
+      id: `${MENU_ITEM_PREFIX}openaiapiAsk`,
+      parentId: `${MENU_ITEM_PREFIX}Parent`,
+      visible: false,
+      title: "Ask question about selected text",
+      config: {
+        model: "gpt-4o-mini",
+        messages: [{ role: "user", content: `I'm going to provide a text excerpt below. Please read it carefully.
+Text Excerpt: ${SELECTED_TEXT}
+Based on the text provided, please answer the following question: ${USER_QUESTION}` }],
+        temperature: 0.5,
+        max_tokens: 260,
+        top_p: 1,
+        frequency_penalty: 0.8,
+        presence_penalty: 0
+      }
     }
     // {
     //   id: `${MENU_ITEM_PREFIX}child6`,
@@ -175,12 +193,18 @@ ${PROMPT_STUB}` }],
 
   // background.ts
   var OPENAI_URL = "https://api.openai.com/v1/chat/completions";
-  var fetchConfig = (findMenuId, selectionText, items) => {
+  var fetchConfig = (findMenuId, selectionText, items, additionalInfo) => {
     const { config } = menuItems.filter(({ id }) => id === findMenuId)[0];
-    config && (config.messages[0].content = config.messages[0].content.replace(
-      PROMPT_STUB,
-      selectionText
-    ));
+    if (config) {
+      config.messages[0].content = config.messages[0].content.replace(
+        SELECTED_TEXT,
+        selectionText
+      );
+      config.messages[0].content = config.messages[0].content.replace(
+        USER_QUESTION,
+        additionalInfo?.response
+      );
+    }
     ["menuitem1", "menuitem2"].forEach((menuItemId) => {
       if (findMenuId === `${MENU_ITEM_PREFIX}${menuItemId}` && config) {
         config.messages[0].content = items[menuItemId] + "\n\n" + selectionText;
@@ -204,6 +228,55 @@ ${PROMPT_STUB}` }],
       }
     );
   }
+  async function sendOpenAIRequest(tabId, info, additionalData) {
+    const items = await chrome.storage.sync.get({
+      openAIKey: "",
+      maxTokens: 1e3,
+      model: "gpt-4o-mini",
+      menuitem1: "",
+      menuitem2: ""
+    });
+    if (!items.openAIKey) {
+      chrome.tabs.sendMessage(tabId, {
+        openaiapiERROR: "Please set OPEN AI KEY in the extension options, please find instructions in option window"
+      });
+      return;
+    }
+    chrome.tabs.sendMessage(tabId, { openaiapiWAIT: true });
+    const requestBody = fetchConfig(
+      info.menuItemId.toString(),
+      info.selectionText || "",
+      items,
+      additionalData
+    );
+    requestBody && items.maxTokens && (requestBody.max_tokens = parseInt(items.maxTokens));
+    requestBody && items.model && (requestBody.model = items.model);
+    fetch(OPENAI_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: "Bearer " + items.openAIKey
+      },
+      body: JSON.stringify(requestBody)
+    }).then((response) => {
+      if (!response.ok) {
+        console.log("response is broken", response);
+        throw new Error(
+          `Network response was not ok. Response status ${response.status}`
+        );
+      }
+      return response.json();
+    }).then((data) => {
+      chrome.tabs.sendMessage(tabId, {
+        summary: (data?.choices[0]?.message?.content?.trim() || "") + (data?.choices[0]?.message?.refusal?.trim() || "")
+      });
+    }).catch((error) => {
+      chrome.tabs.sendMessage(tabId, {
+        openaiapiERROR: error.message
+      });
+      console.error("Fetch error:", error.message);
+    });
+  }
   try {
     chrome.runtime.onInstalled.addListener(function() {
       for (var i = 0; i < menuItems.length; i++) {
@@ -220,58 +293,20 @@ ${PROMPT_STUB}` }],
           openaiapiERROR: "Something goes wrong"
         });
       }
-      if (info.menuItemId === "openaiapiSAMPLE") {
-        chrome.tabs.sendMessage(tabId, {
-          summary: "Lorem ipsum dolor sit amet"
-        });
+      if (info.menuItemId === "openaiapiAsk") {
+        chrome.tabs.sendMessage(
+          tabId,
+          {
+            openaiapiexpPopover: {}
+          },
+          (response) => {
+            info.menuItemId = `${MENU_ITEM_PREFIX}openaiapiAsk`;
+            response?.response && sendOpenAIRequest(tabId, info, response);
+          }
+        );
       }
       if (info.menuItemId.toString().startsWith(MENU_ITEM_PREFIX)) {
-        const items = await chrome.storage.sync.get({
-          openAIKey: "",
-          maxTokens: 1e3,
-          model: "gpt-4o-mini",
-          menuitem1: "",
-          menuitem2: ""
-        });
-        if (!items.openAIKey) {
-          chrome.tabs.sendMessage(tabId, {
-            openaiapiERROR: "Please set OPEN AI KEY in the extension options, please find instructions in option window"
-          });
-          return;
-        }
-        chrome.tabs.sendMessage(tabId, { openaiapiWAIT: true });
-        const requestBody = fetchConfig(
-          info.menuItemId.toString(),
-          info.selectionText || "",
-          items
-        );
-        requestBody && items.maxTokens && (requestBody.max_tokens = parseInt(items.maxTokens));
-        requestBody && items.model && (requestBody.model = items.model);
-        fetch(OPENAI_URL, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: "Bearer " + items.openAIKey
-          },
-          body: JSON.stringify(requestBody)
-        }).then((response) => {
-          if (!response.ok) {
-            console.log("response is broken", response);
-            throw new Error(
-              `Network response was not ok. Response status ${response.status}`
-            );
-          }
-          return response.json();
-        }).then((data) => {
-          chrome.tabs.sendMessage(tabId, {
-            summary: (data?.choices[0]?.message?.content?.trim() || "") + (data?.choices[0]?.message?.refusal?.trim() || "")
-          });
-        }).catch((error) => {
-          chrome.tabs.sendMessage(tabId, {
-            openaiapiERROR: error.message
-          });
-          console.error("Fetch error:", error.message);
-        });
+        sendOpenAIRequest(tabId, info);
       }
     });
   } catch (e) {

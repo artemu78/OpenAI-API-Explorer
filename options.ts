@@ -31,6 +31,15 @@ document.addEventListener("DOMContentLoaded", function () {
   }
   restore_options();
 
+  function ShowSaveSuccessStatus() {
+    // Update status to let user know options were saved.
+    const status = document.getElementById("status");
+    status && (status.textContent = "Options saved.");
+    setTimeout(function () {
+      status && (status.textContent = "");
+    }, 3000);
+  }
+
   // Saves options to chrome.storage
   function save_options() {
     const theme = (document.getElementById("theme") as HTMLInputElement).value;
@@ -52,14 +61,7 @@ document.addEventListener("DOMContentLoaded", function () {
       model,
     };
 
-    chrome.storage.sync.set(saveObject, function () {
-      // Update status to let user know options were saved.
-      const status = document.getElementById("status");
-      status && (status.textContent = "Options saved.");
-      setTimeout(function () {
-        status && (status.textContent = "");
-      }, 3000);
-    });
+    chrome.storage.sync.set(saveObject, ShowSaveSuccessStatus);
 
     chrome.contextMenus.update(`${MENU_ITEM_PREFIX}menuitem1`,
       {

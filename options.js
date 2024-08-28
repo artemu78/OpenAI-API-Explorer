@@ -2,7 +2,8 @@
 (() => {
   // menu.ts
   var MENU_ITEM_PREFIX = "openaiapiexp";
-  var PROMPT_STUB = "<<prompt>>";
+  var SELECTED_TEXT = "<<selection>>";
+  var USER_QUESTION = "<<user_question>>";
   var menuItems = [
     {
       id: `${MENU_ITEM_PREFIX}Parent`,
@@ -21,12 +22,6 @@
     //   visible: true, 
     // title: "Error",
     // },
-    // {
-    //   id: `openaiapiSAMPLE`,
-    //   parentId: `${MENU_ITEM_PREFIX}Parent`,
-    //   visible: true, 
-    // title: "Sample",
-    // },
     {
       id: `${MENU_ITEM_PREFIX}child1`,
       parentId: `${MENU_ITEM_PREFIX}Parent`,
@@ -36,7 +31,7 @@
         model: "gpt-4o-mini",
         messages: [{ role: "user", content: `Summarize this for a second-grade student:
 
-${PROMPT_STUB}` }],
+${SELECTED_TEXT}` }],
         temperature: 0.7,
         max_tokens: 264,
         top_p: 1,
@@ -53,7 +48,7 @@ ${PROMPT_STUB}` }],
         model: "gpt-4o-mini",
         messages: [{ role: "user", content: `Answer the question please:
 
-${PROMPT_STUB}` }],
+${SELECTED_TEXT}` }],
         temperature: 0.7,
         max_tokens: 264,
         top_p: 1,
@@ -70,7 +65,7 @@ ${PROMPT_STUB}` }],
         model: "gpt-4o-mini",
         messages: [{ role: "user", content: `Correct this to standard English:
 
-${PROMPT_STUB}` }],
+${SELECTED_TEXT}` }],
         temperature: 0,
         max_tokens: 260,
         top_p: 1,
@@ -87,7 +82,7 @@ ${PROMPT_STUB}` }],
         model: "gpt-4o-mini",
         messages: [{ role: "user", content: `Extract keywords from this text:
 
-${PROMPT_STUB}` }],
+${SELECTED_TEXT}` }],
         temperature: 0.5,
         max_tokens: 260,
         top_p: 1,
@@ -102,7 +97,7 @@ ${PROMPT_STUB}` }],
       title: "TL;DR summarization",
       config: {
         model: "gpt-4o-mini",
-        messages: [{ role: "user", content: `${PROMPT_STUB}
+        messages: [{ role: "user", content: `${SELECTED_TEXT}
 
 Tl;dr` }],
         temperature: 0.7,
@@ -121,7 +116,7 @@ Tl;dr` }],
         model: "gpt-4o-mini",
         messages: [{ role: "user", content: `Create an analogy for this phrase:
 
-${PROMPT_STUB}` }],
+${SELECTED_TEXT}` }],
         temperature: 0.5,
         max_tokens: 260,
         top_p: 1,
@@ -152,6 +147,29 @@ ${PROMPT_STUB}` }],
       config: {
         model: "gpt-4o-mini",
         messages: [{ role: "user", content: `` }],
+        temperature: 0.5,
+        max_tokens: 260,
+        top_p: 1,
+        frequency_penalty: 0.8,
+        presence_penalty: 0
+      }
+    },
+    {
+      id: `openaiapiAsk`,
+      parentId: `${MENU_ITEM_PREFIX}Parent`,
+      visible: true,
+      title: "Ask question about selected text"
+    },
+    {
+      id: `${MENU_ITEM_PREFIX}openaiapiAsk`,
+      parentId: `${MENU_ITEM_PREFIX}Parent`,
+      visible: false,
+      title: "Ask question about selected text",
+      config: {
+        model: "gpt-4o-mini",
+        messages: [{ role: "user", content: `I'm going to provide a text excerpt below. Please read it carefully.
+Text Excerpt: ${SELECTED_TEXT}
+Based on the text provided, please answer the following question: ${USER_QUESTION}` }],
         temperature: 0.5,
         max_tokens: 260,
         top_p: 1,
@@ -201,6 +219,13 @@ ${PROMPT_STUB}` }],
       );
     }
     restore_options();
+    function ShowSaveSuccessStatus() {
+      const status = document.getElementById("status");
+      status && (status.textContent = "Options saved.");
+      setTimeout(function() {
+        status && (status.textContent = "");
+      }, 3e3);
+    }
     function save_options() {
       const theme = document.getElementById("theme").value;
       const openAIKey = document.getElementById("apiKey").value;
@@ -220,13 +245,7 @@ ${PROMPT_STUB}` }],
         menuitem2name,
         model
       };
-      chrome.storage.sync.set(saveObject, function() {
-        const status = document.getElementById("status");
-        status && (status.textContent = "Options saved.");
-        setTimeout(function() {
-          status && (status.textContent = "");
-        }, 3e3);
-      });
+      chrome.storage.sync.set(saveObject, ShowSaveSuccessStatus);
       chrome.contextMenus.update(
         `${MENU_ITEM_PREFIX}menuitem1`,
         {
