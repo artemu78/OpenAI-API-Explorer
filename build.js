@@ -1,9 +1,11 @@
 const { spawn } = require("child_process");
+const fs = require('fs');
 
 function runEsbuild() {
   console.log("Run build");
-  runProcess("options.ts", "options.js");
-  runProcess("background.ts", "out.js");
+  runProcess("options.ts", "dist/options.js");
+  runProcess("background.ts", "dist/out.js");
+  spawn("node", ["archive"]);
 }
 
 function runProcess(inputFile, outputFile) {

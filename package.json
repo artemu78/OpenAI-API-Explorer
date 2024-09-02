@@ -1,6 +1,6 @@
 {
   "name": "openai-api-explorer",
-  "version": "1.4.27",
+  "version": "1.4.31",
   "description": "Chrome extension for web page text manipulation with Open AI models",
   "main": "background.js",
   "devDependencies": {
@@ -22,5 +22,8 @@
   "bugs": {
     "url": "https://github.com/artemu78/OpenAI-API-Explorer/issues"
   },
-  "homepage": "https://github.com/artemu78/OpenAI-API-Explorer#readme"
+  "homepage": "https://github.com/artemu78/OpenAI-API-Explorer#readme",
+  "dependencies": {
+    "archiver": "^7.0.1"
+  }
 }
