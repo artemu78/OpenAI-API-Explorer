@@ -6,7 +6,7 @@ export const USER_QUESTION = "<<user_question>>"
 export const menuItems = [
     { id: `${MENU_ITEM_PREFIX}Parent`, 
     visible: true, 
-    title: "OpenAI API Explorer" },
+    title: "OpenAI API Explorer - TextAigist" },
     // {
     //   id: `openaiapiWAIT`,
     //   parentId: `${MENU_ITEM_PREFIX}Parent`,

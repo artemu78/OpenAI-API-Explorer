@@ -17,23 +17,24 @@ const fetchConfig = (
   additionalInfo?: any
 ) => {
   const { config } = menuItems.filter(({ id }) => id === findMenuId)[0];
-  if (config) {
-    config.messages[0].content = config.messages[0].content.replace(
+  const configResult = {messages: [], ...config};
+  if (configResult) {
+    configResult.messages[0].content = configResult.messages[0].content.replace(
       SELECTED_TEXT,
       selectionText
     );
-    config.messages[0].content = config.messages[0].content.replace(
+    configResult.messages[0].content = configResult.messages[0].content.replace(
       USER_QUESTION,
       additionalInfo?.response
     );
   }
 
   ["menuitem1", "menuitem2"].forEach((menuItemId: string) => {
-    if (findMenuId === `${MENU_ITEM_PREFIX}${menuItemId}` && config) {
-      config.messages[0].content = items[menuItemId] + "\n\n" + selectionText;
+    if (findMenuId === `${MENU_ITEM_PREFIX}${menuItemId}` && configResult) {
+      configResult.messages[0].content = items[menuItemId] + "\n\n" + selectionText;
     }
   });
-  return config;
+  return configResult;
 };
 
 // Function to create a menu item
@@ -70,7 +71,7 @@ async function sendOpenAIRequest(
   if (!items.openAIKey) {
     chrome.tabs.sendMessage(tabId, {
       openaiapiERROR:
-        "Please set OPEN AI KEY in the extension options, please find instructions in option window",
+        "Please set OPENAI KEY in the extension options, please find instructions in option window",
     });
     return;
   }
@@ -126,6 +127,7 @@ try {
     for (var i = 0; i < menuItems.length; i++) {
       createMenuItem(menuItems[i]);
     }
+    chrome.runtime.setUninstallURL("https://www.surveymonkey.com/r/QXKXQML");
   });
 
   chrome.contextMenus.onClicked.addListener(async (info, tab) => {

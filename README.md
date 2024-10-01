@@ -1,4 +1,4 @@
-# OpenAI API Explorer Chrome Extension
+# OpenAI API Explorer - TextAigist: Chrome Extension
 
 This is a simple Chrome extension that uses the OpenAI ChatGPT API to summarize selected text on a webpage. The summarized text is then displayed in an alert.
 
@@ -22,7 +22,7 @@ Your extension is now ready to use! Simply select some text on a webpage, right-
 
 <div>
 <img src="./screenshots/step1.png" width="31%" alt="Paste API key in browser popup">
-<img src="./screenshots/step2.png" width="31%" alt="Select text and choose OpenAI API Explorer">
+<img src="./screenshots/step2.png" width="31%" alt="Select text and choose OpenAI API Explorer - TextAigist">
 <img src="./screenshots/step3.png" width="31%" alt="Wait couple of seconds and see summary in popup">
 </div>
 
