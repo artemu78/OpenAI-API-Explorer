@@ -1,3 +1,4 @@
 /node_modules
 /dist
 /archives
+.DS_Store
