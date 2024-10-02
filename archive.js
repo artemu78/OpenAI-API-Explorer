@@ -1,14 +1,30 @@
 const archiver = require('archiver');
 const fs = require('fs');
+const path = require('path');
+
+const ARCHIVE_FOLDER = 'archives';
+
+function prepareFolder() {
+  const archivePath = path.join(__dirname, ARCHIVE_FOLDER);
+  if (!fs.existsSync(archivePath)) {
+    fs.mkdirSync(archivePath);
+  }
+  return archivePath;
+}
+
+function getVersion() {
+  const packageJson = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+  const version = packageJson.version;
+  return version;
+}
 
 // Function to compress specified files and folders into a zip file
 function compressAssets() {
-    // Read package.json to get the version
-    const packageJson = JSON.parse(fs.readFileSync('package.json', 'utf8'));
-    const version = packageJson.version;
+    const archivePath = prepareFolder();
+    const version = getVersion();
   
     // Output file name includes the version from package.json
-    const outputFileName = `dist_v${version}.zip`;
+    const outputFileName = path.join(archivePath, `dist_v${version}.zip`);
     const output = fs.createWriteStream(outputFileName);
     const archive = archiver('zip', {
       zlib: { level: 9 } // Compression level
@@ -27,8 +43,6 @@ function compressAssets() {
   
     // Add files and folders to the archive
     archive.file('manifest.json', { name: 'manifest.json' });
-    archive.file('options.html', { name: 'options.html' });
-    archive.file('content.js', { name: 'content.js' });
   
     // Add the icons folder and dist folder recursively
     archive.directory('icons/', 'icons');

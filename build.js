@@ -4,6 +4,7 @@ const fs = require('fs');
 function runEsbuild() {
   console.log("Run build");
   runProcess("options.ts", "dist/options.js");
+  runProcess("content.ts", "dist/content.js");
   runProcess("background.ts", "dist/out.js");
   fs.copyFileSync("options.html", "dist/options.html");
   spawn("node", ["archive"]);
