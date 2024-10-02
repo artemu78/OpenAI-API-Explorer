@@ -20,7 +20,9 @@ function runEsbuild() {
   runProcess("content.ts", path.join(buildPath, "content.js"));
   runProcess("background.ts", path.join(buildPath, "out.js"));
   fs.copyFileSync("options.html", path.join(buildPath, "options.html"));
-  spawn("node", ["archive"]);
+  spawn("node", ["archive"], {
+    stdio: ['inherit', 'inherit', 'inherit'] // Inherit stdio from parent process
+  });
 }
 
 function runProcess(inputFile, outputFile) {

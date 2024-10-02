@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "OpenAI API Explorer",
-  "version": "1.4.44",
+  "version": "1.4.46",
   "permissions": [
     "contextMenus",
     "storage",
