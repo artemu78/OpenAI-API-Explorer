@@ -3,9 +3,10 @@ const fs = require('fs');
 const path = require('path');
 
 const BUILD_FOLDER = 'dist';
+const ARCHIVE_FOLDER = 'archives';
 
-function prepareFolder() {
-  const buildPath = path.join(__dirname, BUILD_FOLDER);
+function prepareFolder(folder) {
+  const buildPath = path.join(__dirname, folder);
   if (!fs.existsSync(buildPath)) {
     fs.mkdirSync(buildPath);
   }
@@ -14,12 +15,15 @@ function prepareFolder() {
 
 function runEsbuild() {
   console.log("Run build");
-  const buildPath = prepareFolder();
+  const buildPath = prepareFolder(BUILD_FOLDER);
+  const archivePath = prepareFolder(ARCHIVE_FOLDER);
+
 
   runProcess("options.ts", path.join(buildPath, "options.js"));
   runProcess("content.ts", path.join(buildPath, "content.js"));
   runProcess("background.ts", path.join(buildPath, "out.js"));
   fs.copyFileSync("options.html", path.join(buildPath, "options.html"));
+  fs.copyFileSync("options.html", path.join(archivePath, "options.html"));
   spawn("node", ["archive"], {
     stdio: ['inherit', 'inherit', 'inherit'] // Inherit stdio from parent process
   });
