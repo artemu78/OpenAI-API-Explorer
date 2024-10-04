@@ -104,10 +104,40 @@ document.addEventListener("DOMContentLoaded", function () {
     chrome.storage.sync.clear();
   }
 
+  async function login() {
+    const token = await chrome.identity.getAuthToken({interactive: true});
+    console.log("token", token);
+
+    try {
+      const response = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
+        headers: {
+          Authorization: `Bearer ${token.token}`
+        }
+      });
+      const data = await response.json();
+      if (document.getElementById("avatar")) {
+        (document.getElementById("avatar") as HTMLImageElement).src = data?.picture;
+        (document.getElementById("avatar") as HTMLImageElement).style.display = "block";
+        (document.getElementById("loginButton") as HTMLDivElement).style.display = "none";
+
+      }
+      console.log({data});
+    }
+    catch (e: any) {
+      if (document.getElementById("loginError")) {
+        document.getElementById("loginError")!.innerText = e.message;
+      }
+    }
+  }
+
   document
     .getElementById("saveButton")
     ?.addEventListener("click", save_options);
   document
     .getElementById("clearButton")
     ?.addEventListener("click", clear_options);
+  document
+    .getElementById("loginButton")
+    ?.addEventListener("click", login);
+    
 });

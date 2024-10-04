@@ -1,10 +1,12 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
   <head>
-    <!-- <script src="https://sdk.amazonaws.com/js/aws-sdk-2.1691.0.min.js"></script> -->
     <title>OpenAI API Explorer</title>
     <style>
-      .header { display: flex; justify-content: center; }
+      .header {
+        display: flex;
+        justify-content: center;
+      }
       body {
         font-family: Arial, sans-serif;
         margin: 0;
@@ -17,35 +19,32 @@
         color: #333;
         border-bottom: 1px solid #ddd;
       }
-      label {
-        display: block;
-        margin-top: 20px;
-        font-size: medium;
-      }
       .inputText {
-        width: 100%;
+        width: 40%;
         padding: 10px;
         border: 1px solid #ddd;
         border-radius: 5px;
         box-sizing: border-box;
       }
       select {
-        width: 100%;
+        width: 40%;
         padding: 10px;
         border: 1px solid #ddd;
         border-radius: 5px;
         box-sizing: border-box;
       }
-      input[type="button"] {
+      .button {
         padding: 10px 20px;
         background-color: #007bff;
         color: #fff;
         border: none;
         border-radius: 5px;
-        margin-top: 20px;
         cursor: pointer;
       }
-      input[type="button"]:hover {
+      .small {
+        padding: 5px;
+      }
+      .button:hover {
         background-color: #0056b3;
       }
       #status {
@@ -57,16 +56,44 @@
       }
       .label {
         margin-left: -10px;
+        display: block;
+        margin-top: 20px;
+        font-size: medium;
       }
       .support {
         display: flex;
         justify-content: end;
         font-size: smaller;
       }
+      .menu {
+        display: flex;
+        justify-content: right;
+      }
+      #loginError {
+        color: #ae0000;
+        font-family: "Courier New", Courier, monospace;
+      }
+      .roundedAvatar {
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        object-fit: cover;
+        display: none;
+      }
     </style>
     <script src="options.js"></script>
   </head>
   <body>
+    <div class="menu">
+      <input
+        type="button"
+        value="Login"
+        id="loginButton"
+        class="button small"
+      />
+      <img src="" class="roundedAvatar" alt="avatar" id="avatar" />
+    </div>
+    <div id="loginError"></div>
     <div class="header"><h1>OpenAI API Explorer - TextAigist</h1></div>
     <label for="apiKey" class="label"
       >OpenAI API Key (<a
@@ -76,48 +103,56 @@
       >):</label
     >
     <input type="text" class="inputText" id="apiKey" name="apiKey" />
-    
+
     <hr />
     <label for="maxTokens" class="label"
       ><a
         href="https://platform.openai.com/docs/api-reference/completions/create#completions/create-max_tokens"
         _target="blank"
         >Tokens limit</a
-      ></label>
-      <br>
-      Maximum amount of tokens including input prompt and server response. See
-      <a href="https://platform.openai.com/tokenizer" _target="blank"
-        >tokens calculation</a
-      >
+      ></label
+    >
+    <br />
+    Maximum amount of tokens including input prompt and server response. See
+    <a href="https://platform.openai.com/tokenizer" _target="blank"
+      >tokens calculation</a
+    >
     <input type="text" class="inputText" id="maxTokens" name="maxTokens" />
-  
+
     <hr />
     <label for="theme" class="label">Theme:</label>
     <select id="theme">
       <option value="light">Light</option>
       <option value="dark">Dark</option>
     </select>
-  
+
     <hr />
     <label for="menuitem1" class="label">Custom menu item 1</label>
-      <br>
-      Label presented in context menu <input type="text" name="menuitem1name" id="menuitem1name" />
-      <br>
-      What should we ask AI about selected text?
+    <br />
+    Label presented in context menu
+    <input type="text" name="menuitem1name" id="menuitem1name" />
+    <br />
+    What should we ask AI about selected text?
     <input type="text" class="inputText" id="menuitem1" name="menuitem1" />
 
     <hr />
     <label for="menuitem2" class="label">Custom menu item 2</label>
-      <br>
-      Label presented in context menu <input type="text" name="menuitem2name" id="menuitem2name" />
-      <br>
-      What should we ask AI about selected text?
+    <br />
+    Label presented in context menu
+    <input type="text" name="menuitem2name" id="menuitem2name" />
+    <br />
+    What should we ask AI about selected text?
     <input type="text" class="inputText" id="menuitem2" name="menuitem2" />
 
     <hr />
     <label for="model" class="label">Open AI model</label>
-      <br>
-      See descriptions <a href="https://platform.openai.com/docs/models/models-overview" _target="blank">here</a>
+    <br />
+    See descriptions
+    <a
+      href="https://platform.openai.com/docs/models/models-overview"
+      _target="blank"
+      >here</a
+    >
     <select id="model">
       <option value="gpt-4">GPT-4</option>
       <option value="gpt-4o">GPT-4o</option>
@@ -129,9 +164,16 @@
     </select>
 
     <br />
-    <input type="button" value="Save" id="saveButton" />
-    <input type="button" value="Clear" id="clearButton" />
+
+    <div class="label">
+      <input type="button" value="Save" id="saveButton" class="button" />
+      <input type="button" value="Clear" id="clearButton" class="button" />
+    </div>
     <div id="status"></div>
-    <div class="support">support&nbsp;<a href="mailto:info@textaigist.online">info@textaigist.online</a></div>
+    <div class="support">
+      support&nbsp;<a href="mailto:info@textaigist.online"
+        >info@textaigist.online</a
+      >
+    </div>
   </body>
 </html>
