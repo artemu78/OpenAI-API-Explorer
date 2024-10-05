@@ -1,12 +1,35 @@
 import { MENU_ITEM_PREFIX } from "./menu";
 
-function FillElementsWithData(items: any) {
+type LoginData = {
+  email: string;
+  family_name: string;
+  given_name: string;
+  id: string;
+  name: string;  
+  picture: string;
+  verified_email: true;
+  token?: string;
+}
+
+type FormData = {[key: string]: any};
+// {
+//     openAIKey: string;
+//     theme: string;
+//     maxTokens: string;
+//     menuitem1: string;
+//     menuitem1name: string;
+//     menuitem2: string;
+//     menuitem2name: string;
+//     model: string;
+// }
+
+function FillFormWithData(items: FormData) {
   (document.getElementById("apiKey") as HTMLInputElement).value =
     items.openAIKey;
   (document.getElementById("theme") as HTMLInputElement).value =
     items.theme || "light";
   (document.getElementById("maxTokens") as HTMLInputElement).value =
-    items.maxTokens || 1000;
+    items.maxTokens || "1000";
   (document.getElementById("menuitem1") as HTMLInputElement).value =
     items.menuitem1 || "";
   (document.getElementById("menuitem1name") as HTMLInputElement).value =
@@ -19,11 +42,10 @@ function FillElementsWithData(items: any) {
     items.model || "gpt-4o-mini";
 }
 
-document.addEventListener("DOMContentLoaded", function () {
   // Restores select box and checkbox state using the preferences
   // stored in chrome.storage.
-  function restore_options() {
-    chrome.storage.sync.get(
+  async function restoreControls() {
+    await chrome.storage.sync.get(
       {
         openAIKey: "",
         theme: "",
@@ -34,10 +56,10 @@ document.addEventListener("DOMContentLoaded", function () {
         menuitem2name: "Custom item 2",
         model: "",
       },
-      FillElementsWithData
+      FillFormWithData
     );
+    showMenu();
   }
-  restore_options();
 
   function ShowSaveSuccessStatus() {
     // Update status to let user know options were saved.
@@ -49,7 +71,7 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   // Saves options to chrome.storage
-  function save_options() {
+  function saveOptions() {
     const theme = (document.getElementById("theme") as HTMLInputElement).value;
     const openAIKey = (document.getElementById("apiKey") as HTMLInputElement)
       .value;
@@ -90,8 +112,8 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  function clear_options() {
-    FillElementsWithData({
+  function clearOptions() {
+    FillFormWithData({
       openAIKey: "",
       theme: "",
       maxTokens: "",
@@ -106,8 +128,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
   async function login() {
     const token = await chrome.identity.getAuthToken({interactive: true});
-    console.log("token", token);
-
     try {
       const response = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
         headers: {
@@ -115,13 +135,9 @@ document.addEventListener("DOMContentLoaded", function () {
         }
       });
       const data = await response.json();
-      if (document.getElementById("avatar")) {
-        (document.getElementById("avatar") as HTMLImageElement).src = data?.picture;
-        (document.getElementById("avatar") as HTMLImageElement).style.display = "block";
-        (document.getElementById("loginButton") as HTMLDivElement).style.display = "none";
-
-      }
-      console.log({data});
+      data.token = token.token;
+      chrome.storage.sync.set({...data});
+      showAvatar(data);
     }
     catch (e: any) {
       if (document.getElementById("loginError")) {
@@ -130,14 +146,39 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 
+  async function showMenu() {
+    const loginData = await chrome.storage.sync.get({token: "", given_name: "", family_name: "", picture: ""});
+    if (loginData.token) {
+      showAvatar(loginData as LoginData);
+    }
+    else {
+      showLoginButton();
+    }
+  }
+
+  function showAvatar(data: LoginData) {
+    if (document.getElementById("avatar")) {
+      (document.getElementById("avatar") as HTMLImageElement).src = data?.picture;
+      (document.getElementById("avatar") as HTMLImageElement).alt = data?.given_name + " " + data?.family_name;
+      (document.getElementById("avatar") as HTMLImageElement).style.display = "block";
+      (document.getElementById("loginButton") as HTMLDivElement).style.display = "none";
+    }
+  }
+
+  function showLoginButton() {
+    (document.getElementById("avatar") as HTMLImageElement).style.display = "none";
+    (document.getElementById("loginButton") as HTMLDivElement).style.display = "block";
+  }
+
+document.addEventListener("DOMContentLoaded", function () {
   document
     .getElementById("saveButton")
-    ?.addEventListener("click", save_options);
+    ?.addEventListener("click", saveOptions);
   document
     .getElementById("clearButton")
-    ?.addEventListener("click", clear_options);
+    ?.addEventListener("click", clearOptions);
   document
     .getElementById("loginButton")
     ?.addEventListener("click", login);
-    
+  restoreControls();
 });
