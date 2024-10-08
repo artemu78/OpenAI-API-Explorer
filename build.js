@@ -18,7 +18,6 @@ function runEsbuild() {
   const buildPath = prepareFolder(BUILD_FOLDER);
   const archivePath = prepareFolder(ARCHIVE_FOLDER);
 
-
   runProcess("options.ts", path.join(buildPath, "options.js"));
   runProcess("content.ts", path.join(buildPath, "content.js"));
   runProcess("background.ts", path.join(buildPath, "out.js"));

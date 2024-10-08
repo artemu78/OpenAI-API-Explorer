@@ -80,21 +80,25 @@
         object-fit: cover;
         display: none;
       }
+
+      .hidden {
+        display: none;
+      }
     </style>
     <script src="options.js"></script>
   </head>
   <body>
-    <div class="menu">
+    <div class="menu" id="menu">
       <input
         type="button"
         value="Login"
         id="loginButton"
-        class="button small"
+        class="button small hidden"
       />
       <img src="" class="roundedAvatar" alt="avatar" id="avatar" />
     </div>
     <div id="loginError"></div>
-    <div class="header"><h1>OpenAI API Explorer - TextAigist</h1></div>
+    <div class="header" id="title"><h1>OpenAI API Explorer - TextAigist</h1></div>
     <label for="apiKey" class="label"
       >OpenAI API Key (<a
         href="https://platform.openai.com/account/api-keys"
@@ -154,13 +158,11 @@
       >here</a
     >
     <select id="model">
-      <option value="gpt-4">GPT-4</option>
       <option value="gpt-4o">GPT-4o</option>
       <option value="gpt-4o-mini">GPT-4o mini</option>
-      <option value="gpt-4-turbo">gpt-4-turbo</option>
+      <option value="gpt-4">GPT-4</option>
+      <option value="gpt-4-turbo">GPT-4-turbo</option>
       <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
-      <option value="text-embedding-3-large">Embeddings</option>
-      <option value="text-moderation-latest">Moderation</option>
     </select>
 
     <br />

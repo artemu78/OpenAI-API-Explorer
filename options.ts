@@ -7,21 +7,11 @@ type LoginData = {
   id: string;
   name: string;  
   picture: string;
-  verified_email: true;
+  verified_email: boolean;
   token?: string;
 }
 
 type FormData = {[key: string]: any};
-// {
-//     openAIKey: string;
-//     theme: string;
-//     maxTokens: string;
-//     menuitem1: string;
-//     menuitem1name: string;
-//     menuitem2: string;
-//     menuitem2name: string;
-//     model: string;
-// }
 
 function FillFormWithData(items: FormData) {
   (document.getElementById("apiKey") as HTMLInputElement).value =
@@ -126,8 +116,8 @@ function FillFormWithData(items: FormData) {
     chrome.storage.sync.clear();
   }
 
-  async function login() {
-    const token = await chrome.identity.getAuthToken({interactive: true});
+  async function login(interactive = true) {
+    const token = await chrome.identity.getAuthToken({interactive});
     try {
       const response = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
         headers: {
@@ -136,7 +126,7 @@ function FillFormWithData(items: FormData) {
       });
       const data = await response.json();
       data.token = token.token;
-      chrome.storage.sync.set({...data});
+      chrome.storage.sync.set({...data, tokenTimestamp: Date.now()});
       showAvatar(data);
     }
     catch (e: any) {
@@ -147,8 +137,12 @@ function FillFormWithData(items: FormData) {
   }
 
   async function showMenu() {
-    const loginData = await chrome.storage.sync.get({token: "", given_name: "", family_name: "", picture: ""});
+    const loginData = await chrome.storage.sync.get({token: "", given_name: "", family_name: "", picture: "", tokenTimestamp: ""});
     if (loginData.token) {
+      // update token every 5 minutes
+      if (Date.now() - loginData.tokenTimestamp > 5 * 60 * 1000) {
+        login(false);
+      }
       showAvatar(loginData as LoginData);
     }
     else {
@@ -159,7 +153,12 @@ function FillFormWithData(items: FormData) {
   function showAvatar(data: LoginData) {
     if (document.getElementById("avatar")) {
       (document.getElementById("avatar") as HTMLImageElement).src = data?.picture;
-      (document.getElementById("avatar") as HTMLImageElement).alt = data?.given_name + " " + data?.family_name;
+      (document.getElementById("avatar") as HTMLImageElement).onclick = async () => {
+        await chrome.storage.sync.set({token: "", given_name: "", family_name: "", picture: ""});
+        showMenu();
+      }
+      (document.getElementById("avatar") as HTMLImageElement).title = data?.given_name + " " + data?.family_name + " (click to logout)";
+      (document.getElementById("avatar") as HTMLImageElement).alt = data?.given_name + " " + data?.family_name + " (click to logout)";
       (document.getElementById("avatar") as HTMLImageElement).style.display = "block";
       (document.getElementById("loginButton") as HTMLDivElement).style.display = "none";
     }
@@ -167,7 +166,7 @@ function FillFormWithData(items: FormData) {
 
   function showLoginButton() {
     (document.getElementById("avatar") as HTMLImageElement).style.display = "none";
-    (document.getElementById("loginButton") as HTMLDivElement).style.display = "block";
+    // (document.getElementById("loginButton") as HTMLDivElement).style.display = "block";
   }
 
 document.addEventListener("DOMContentLoaded", function () {
@@ -179,6 +178,13 @@ document.addEventListener("DOMContentLoaded", function () {
     ?.addEventListener("click", clearOptions);
   document
     .getElementById("loginButton")
-    ?.addEventListener("click", login);
+    ?.addEventListener("click", () => login());
+  document
+    .getElementById("title")
+    ?.addEventListener("dblclick", revealLogin);
   restoreControls();
 });
+
+function revealLogin() {
+  document.getElementById("loginButton") && (document.getElementById("loginButton")!.style.display = "block");
+}

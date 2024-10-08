@@ -6,6 +6,8 @@ import {
 } from "./menu";
 
 const OPENAI_URL = "https://api.openai.com/v1/chat/completions";
+const LAMBDA_URL = "https://ou52argaoqotzii5uults2o4wa0vafjw.lambda-url.us-east-1.on.aws/";
+
 type Items = {
   [key: string]: any;
 };
@@ -67,8 +69,11 @@ async function sendOpenAIRequest(
     model: "gpt-4o-mini",
     menuitem1: "",
     menuitem2: "",
+    token: "",
+    email: "",
   });
-  if (!items.openAIKey) {
+
+  if (!items.openAIKey && !items.token) {
     chrome.tabs.sendMessage(tabId, {
       openaiapiERROR:
         "Please set OPENAI KEY in the extension options, please find instructions in option window",
@@ -80,7 +85,7 @@ async function sendOpenAIRequest(
   const requestBody = fetchConfig(
     info.menuItemId.toString(),
     info.selectionText || "",
-    items,
+    {...items}, //items itself should be immutable
     additionalData
   );
 
@@ -89,36 +94,36 @@ async function sendOpenAIRequest(
     (requestBody.max_tokens = parseInt(items.maxTokens));
   requestBody && items.model && (requestBody.model = items.model);
 
-  fetch(OPENAI_URL, {
+  let authToken, url;
+  if (items.token) {
+    authToken = items.token;
+    url = LAMBDA_URL
+  }
+  else {
+    authToken = items.openAIKey;
+    url = OPENAI_URL;
+  }
+
+  const response = await fetch(url, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Authorization: "Bearer " + items.openAIKey,
+      Authorization: "Bearer " + authToken,
     },
     body: JSON.stringify(requestBody),
-  })
-    .then((response) => {
-      if (!response.ok) {
-        console.log("response is broken", response);
-        throw new Error(
-          `Network response was not ok. Response status ${response.status}`
-        );
-      }
-      return response.json();
-    })
-    .then((data) => {
-      chrome.tabs.sendMessage(tabId, {
-        summary:
-          (data?.choices[0]?.message?.content?.trim() || "") +
-          (data?.choices[0]?.message?.refusal?.trim() || ""),
-      });
-    })
-    .catch((error) => {
-      chrome.tabs.sendMessage(tabId, {
-        openaiapiERROR: error.message,
-      });
-      console.error("Fetch error:", error.message);
+  });
+  if (!response.ok) {
+    console.log("response is broken", response);
+    chrome.tabs.sendMessage(tabId, {
+      openaiapiERROR: `Network response was not ok. Response status ${response.status}`,
     });
+  }
+  const data = await response.json();
+  chrome.tabs.sendMessage(tabId, {
+    summary:
+      (data?.choices[0]?.message?.content?.trim() || "") +
+      (data?.choices[0]?.message?.refusal?.trim() || ""),
+  });
 }
 
 try {
