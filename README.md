@@ -50,7 +50,7 @@ For customers who purchase tokens through our website, we collect and store thei
 
 The email address is used solely as a unique identifier to associate purchased tokens with the respective customer's account. This allows for personalized access to paid services within our extension.
 
-Data Security
+### Data Security
 
 All personal information, including email addresses, is transmitted using secure HTTPS protocol to ensure data protection. We implement robust security measures to safeguard your data from unauthorized access or disclosure.
 

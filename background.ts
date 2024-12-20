@@ -6,7 +6,8 @@ import {
 } from "./menu";
 
 const OPENAI_URL = "https://api.openai.com/v1/chat/completions";
-const LAMBDA_URL = "https://ou52argaoqotzii5uults2o4wa0vafjw.lambda-url.us-east-1.on.aws/";
+const LAMBDA_URL =
+  "https://ou52argaoqotzii5uults2o4wa0vafjw.lambda-url.us-east-1.on.aws/";
 
 type Items = {
   [key: string]: any;
@@ -19,7 +20,7 @@ const fetchConfig = (
   additionalInfo?: any
 ) => {
   const { config } = menuItems.filter(({ id }) => id === findMenuId)[0];
-  const configResult = {messages: [], ...config};
+  const configResult = { messages: [], ...config };
   if (configResult) {
     configResult.messages[0].content = configResult.messages[0].content.replace(
       SELECTED_TEXT,
@@ -33,7 +34,8 @@ const fetchConfig = (
 
   ["menuitem1", "menuitem2"].forEach((menuItemId: string) => {
     if (findMenuId === `${MENU_ITEM_PREFIX}${menuItemId}` && configResult) {
-      configResult.messages[0].content = items[menuItemId] + "\n\n" + selectionText;
+      configResult.messages[0].content =
+        items[menuItemId] + "\n\n" + selectionText;
     }
   });
   return configResult;
@@ -71,6 +73,7 @@ async function sendOpenAIRequest(
     menuitem2: "",
     token: "",
     email: "",
+    tokenTimestamp: 0,
   });
 
   if (!items.openAIKey && !items.token) {
@@ -85,7 +88,7 @@ async function sendOpenAIRequest(
   const requestBody = fetchConfig(
     info.menuItemId.toString(),
     info.selectionText || "",
-    {...items}, //items itself should be immutable
+    { ...items }, //items itself should be immutable
     additionalData
   );
 
@@ -97,9 +100,13 @@ async function sendOpenAIRequest(
   let authToken, url;
   if (items.token) {
     authToken = items.token;
-    url = LAMBDA_URL
-  }
-  else {
+    url = LAMBDA_URL;
+    if (Date.now() - items.tokenTimestamp > 5 * 60 * 1000) {
+      // token is older than 5 minutes and we need to refresh it
+      authToken = await login(false);
+      chrome.storage.sync.set({ token: authToken, tokenTimestamp: Date.now() });
+    }
+  } else {
     authToken = items.openAIKey;
     url = OPENAI_URL;
   }
@@ -163,4 +170,15 @@ try {
   });
 } catch (e) {
   console.log("ChatGPT summarizer service worker error", e);
+}
+
+function login(interactive = true) {
+  return new Promise((resolve, reject) => {
+    chrome.identity.getAuthToken({ interactive }, (token) => {
+      if (chrome.runtime.lastError) {
+        reject(chrome.runtime.lastError);
+      }
+      resolve(token);
+    });
+  });
 }

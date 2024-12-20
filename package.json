@@ -1,6 +1,6 @@
 {
   "name": "openai-api-explorer",
-  "version": "1.5.1",
+  "version": "1.5.2",
   "description": "Chrome extension for web page text manipulation with Open AI models",
   "main": "background.js",
   "devDependencies": {
