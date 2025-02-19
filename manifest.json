@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "OpenAI API Explorer",
   "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAlgg8FNFmgpHWIi4IugTvBSzIh+0G3lQtN0eVxtoI3JqDk0tyYTH7iMDxiEdU2+E1VOAch8qi1wwKpsIP1QKVuhIpVw7O9idbPtpMB/RWK9Ledy70LB1BSpIY7dTHrzQ3zDrGwLDZxkwRcHwFG3VlcqkviftCrVCsuWEOpEdtW4PbXw1B24oW9meba6jTaNtiOih8FhyiTZTkuNCPrOVpYkeoLHWLhzNKiVEyfyfpnuy6GHOsWWkSr8Gw87kqVv9fXffj/bbUa37rEYnQvYAD0bNM5N3Cz0SOtwtufvBAN2fxJ/Fy/oBgJReqFKuIMmLIVWVVrqQ2h7WSQ1hx3hrulQIDAQAB",
-  "version": "1.5.2",
+  "version": "1.5.21",
   "permissions": [
     "contextMenus",
     "storage",

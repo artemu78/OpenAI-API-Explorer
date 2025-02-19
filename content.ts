@@ -1,5 +1,5 @@
 type Size = {
-  x: string; 
+  x: string;
   y: string;
 };
 type SendResponse = (response?: any) => void;
@@ -7,7 +7,7 @@ type SendResponse = (response?: any) => void;
 var openaiapiexpPopup: HTMLDivElement | null = null;
 
 chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
-  if (request.summary) showResponseModal(request.summary);
+  if (request.summary) showResponseModal(request.summary, request.requestPrice);
   if (request.openaiapiWAIT) showWaitModal();
   if (request.openaiapiERROR) showErrorModal(request.openaiapiERROR);
   if (request.openaiapiexpPopover) {
@@ -17,70 +17,70 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
 });
 
 function showPopover(message: string, sendResponse: SendResponse) {
-    // Create the modal div and set its class
-    var modal = document.createElement('div');
-    modal.setAttribute('class', 'openapiexpPopover');
-    modal.setAttribute('id', 'openapiexpPopover');
-  
-    // Create the modal content div
-    var modalContent = document.createElement('div');
-    modalContent.setAttribute('class', 'openapiexpPopoverContent');
-  
-    // Create the close button and set its content
-    var closeButton = document.createElement('span');
-    closeButton.setAttribute('class', 'openapiexpPopoverClose');
-    closeButton.innerHTML = '&times;';
-  
-    // Create the input field for the question
-    var questionInput = document.createElement('input');
-    questionInput.setAttribute('type', 'text');
-    questionInput.classList.add("openapiexpControls");
-    questionInput.classList.add("openapiexpPopoverInput");
-    questionInput.setAttribute('placeholder', 'Your question...');
-  
-    // Create the "Ask" button
-    var askButton = document.createElement('button');
-    askButton.classList.add("openapiexpControls");
-    askButton.textContent = 'Send question';
-  
-    // Create the "Cancel" button
-    var cancelButton = document.createElement('button');
-    cancelButton.classList.add("openapiexpControls");
-    cancelButton.textContent = 'Cancel';
-  
-    // Append the elements to the modal content div
-    modalContent.appendChild(closeButton);
-    modalContent.appendChild(questionInput);
-    modalContent.appendChild(askButton);
-    modalContent.appendChild(cancelButton);
-  
-    // Append the modal content div to the modal div
-    modal.appendChild(modalContent);
-  
-    // Append the modal div to the body
-    document.body.appendChild(modal);
-  
-    // Event listeners for buttons and closing the modal
-    closeButton.onclick = function() {
-      sendResponse({response: ""});
-      document.getElementById("openapiexpPopover")?.remove();
-    };
-  
-    cancelButton.onclick = function() {
-      sendResponse({response: ""});
-      document.getElementById("openapiexpPopover")?.remove();
-    };
+  // Create the modal div and set its class
+  var modal = document.createElement("div");
+  modal.setAttribute("class", "openapiexpPopover");
+  modal.setAttribute("id", "openapiexpPopover");
 
-    askButton.onclick = function () {
-      sendResponse({response: questionInput.value});
+  // Create the modal content div
+  var modalContent = document.createElement("div");
+  modalContent.setAttribute("class", "openapiexpPopoverContent");
+
+  // Create the close button and set its content
+  var closeButton = document.createElement("span");
+  closeButton.setAttribute("class", "openapiexpPopoverClose");
+  closeButton.innerHTML = "&times;";
+
+  // Create the input field for the question
+  var questionInput = document.createElement("input");
+  questionInput.setAttribute("type", "text");
+  questionInput.classList.add("openapiexpControls");
+  questionInput.classList.add("openapiexpPopoverInput");
+  questionInput.setAttribute("placeholder", "Your question...");
+
+  // Create the "Ask" button
+  var askButton = document.createElement("button");
+  askButton.classList.add("openapiexpControls");
+  askButton.textContent = "Send question";
+
+  // Create the "Cancel" button
+  var cancelButton = document.createElement("button");
+  cancelButton.classList.add("openapiexpControls");
+  cancelButton.textContent = "Cancel";
+
+  // Append the elements to the modal content div
+  modalContent.appendChild(closeButton);
+  modalContent.appendChild(questionInput);
+  modalContent.appendChild(askButton);
+  modalContent.appendChild(cancelButton);
+
+  // Append the modal content div to the modal div
+  modal.appendChild(modalContent);
+
+  // Append the modal div to the body
+  document.body.appendChild(modal);
+
+  // Event listeners for buttons and closing the modal
+  closeButton.onclick = function () {
+    sendResponse({ response: "" });
+    document.getElementById("openapiexpPopover")?.remove();
+  };
+
+  cancelButton.onclick = function () {
+    sendResponse({ response: "" });
+    document.getElementById("openapiexpPopover")?.remove();
+  };
+
+  askButton.onclick = function () {
+    sendResponse({ response: questionInput.value });
+    document.getElementById("openapiexpPopover")?.remove();
+  };
+
+  window.onclick = function (event) {
+    if (event.target == modal) {
       document.getElementById("openapiexpPopover")?.remove();
     }
-  
-    window.onclick = function(event) {
-      if (event.target == modal) {
-        document.getElementById("openapiexpPopover")?.remove();
-      }
-    };
+  };
 }
 
 function showWaitModal() {
@@ -91,34 +91,84 @@ function showWaitModal() {
 }
 
 function showErrorModal(message: string) {
-  const popup = createModalWithButton({ x: "400px", y: "300px" });
+  const popup = createModalWithButton({ x: "400px", y: "300px" }, message);
   popup.classList.add("openaiapiexperror");
+}
+
+function addTextToPopup(message: string, popup: HTMLDivElement) {
   const contentElement = document.createElement("div");
-  contentElement.textContent = message;
+  contentElement.classList.add("openapiexpResponseContent");
+  contentElement.innerHTML = message;
   popup.insertBefore(contentElement, popup.firstChild);
 }
 
-function showResponseModal(message: string) {
-  const popup = createModalWithButton({ x: "400px", y: "200px" });
-  const contentElement = document.createElement("div");
-  contentElement.textContent = message;
-  popup.insertBefore(contentElement, popup.firstChild);
+function showResponseModal(message: string, requestPrice: number) {
+  const popup = createModalWithButton(
+    { x: "400px", y: "200px" },
+    message,
+    requestPrice
+  );
 }
 
-function createModalWithButton(size: Size) {
+function appendPriceString(requestPrice: number, popup: HTMLDivElement) {
+  const priceElement = document.createElement("div");
+  priceElement.classList.add("openapiexpResponsePrice");
+  priceElement.innerHTML = `Price: $${requestPrice.toFixed(6)}`;
+  popup.appendChild(priceElement);
+}
+
+function createModalWithButton(
+  size: Size,
+  message: string,
+  requestPrice?: number
+) {
   let popup = createModal(size);
+  if (requestPrice) appendPriceString(requestPrice, popup);
+  addTextToPopup(message, popup);
+  appendCloseButton(popup);
+  appendCopyButton(popup);
+  return popup;
+}
 
-  // Add a close button to the popup
+function appendCloseButton(popup: HTMLDivElement) {
   const closeButton = document.createElement("button");
+  closeButton.classList.add("responseModalButton");
   closeButton.textContent = "Close";
-  closeButton.style.display = "block";
-  closeButton.style.marginTop = "10px";
   closeButton.onclick = function () {
     document.body.removeChild(popup);
   };
   popup.appendChild(closeButton);
   closeButton.focus();
-  return popup;
+}
+
+function appendCopyButton(popup: HTMLDivElement) {
+  const contentElement = popup.querySelector(".openapiexpResponseContent");
+  const copyButton = document.createElement("button");
+  copyButton.classList.add("responseModalButton");
+  copyButton.textContent = "Copy";
+  copyButton.onclick = function () {
+    navigator.clipboard.writeText(contentElement?.textContent || "");
+    handleCopy(copyButton);
+  };
+  popup.appendChild(copyButton);
+}
+
+// Function to handle the copy click
+function handleCopy(copyButton: HTMLButtonElement) {
+  // Save the original button text
+  const originalText = copyButton.textContent;
+
+  // Change button text to show feedback
+  copyButton.textContent = "Copied!";
+
+  // Optional: add a success class for styling
+  copyButton.classList.add("copy-success");
+
+  // Reset button after 2 seconds
+  setTimeout(() => {
+    copyButton.textContent = originalText;
+    copyButton.classList.remove("copy-success");
+  }, 2000);
 }
 
 function createModal(size: Size) {
@@ -233,6 +283,22 @@ let keyFrames =
 .openapiexpPopoverClose:focus {\
   color: black;\
   cursor: pointer;\
+}\
+\
+.responseModalButton {\
+  margin-right: 10px;\
+  display: inline-block;\
+  padding: 5px;\
+  border-radius: 5px;\
+}\
+.openapiexpResponseContent p {\
+  font-size: 1rem;\
+  padding-bottom: 1rem;\
+}\
+.openapiexpResponsePrice {\
+  font-size: 0.8rem;\
+  padding-bottom: 1rem;\
+  float: right;\
 }\
 ";
 style.innerHTML = keyFrames;

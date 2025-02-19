@@ -84,6 +84,12 @@
       .hidden {
         display: none;
       }
+
+      .modelError {
+        color: #ae0000;
+        font-family: "Courier New", Courier, monospace;
+        font-size: small;
+      }
     </style>
     <script src="options.js"></script>
   </head>
@@ -98,7 +104,9 @@
       <img src="" class="roundedAvatar" alt="avatar" id="avatar" />
     </div>
     <div id="loginError"></div>
-    <div class="header" id="title"><h1>OpenAI API Explorer - TextAigist</h1></div>
+    <div class="header" id="title">
+      <h1>OpenAI API Explorer - TextAigist</h1>
+    </div>
     <label for="apiKey" class="label"
       >OpenAI API Key (<a
         href="https://platform.openai.com/account/api-keys"
@@ -154,17 +162,20 @@
     See descriptions
     <a
       href="https://platform.openai.com/docs/models/models-overview"
-      _target="blank"
+      target="_blank"
       >here</a
     >
     <select id="model">
+      <option value="o1">o1</option>
+      <option value="o1-preview">o1-preview</option>
+      <option value="o1-mini">o1-mini</option>
       <option value="gpt-4o">GPT-4o</option>
       <option value="gpt-4o-mini">GPT-4o mini</option>
       <option value="gpt-4">GPT-4</option>
       <option value="gpt-4-turbo">GPT-4-turbo</option>
       <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
     </select>
-
+    <div id="modelDescription" class="modelError"></div>
     <br />
 
     <div class="label">

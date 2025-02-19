@@ -5,6 +5,43 @@ import {
   menuItems,
 } from "./menu";
 
+const modelPrice = {
+  o1: {
+    input: 0.015,
+    output: 0.06,
+  },
+  "o1-mini": {
+    input: 0.003,
+    output: 0.012,
+  },
+  "o1-preview": {
+    input: 0.015,
+    output: 0.06,
+  },
+  "gpt-4": {
+    input: 0.03,
+    output: 0.06,
+  },
+  "gpt-4o": {
+    input: 0.0025,
+    c_input: 0.00125,
+    output: 0.01,
+  },
+  "gpt-4o-mini": {
+    input: 0.00015,
+    c_input: 0.075,
+    output: 0.0006,
+  },
+  "gpt-4-turbo": {
+    input: 0.01,
+    output: 0.03,
+  },
+  "gpt-3.5-turbo": {
+    input: 0.0015,
+    output: 0.002,
+  },
+};
+
 const OPENAI_URL = "https://api.openai.com/v1/chat/completions";
 const LAMBDA_URL =
   "https://ou52argaoqotzii5uults2o4wa0vafjw.lambda-url.us-east-1.on.aws/";
@@ -20,7 +57,7 @@ const fetchConfig = (
   additionalInfo?: any
 ) => {
   const { config } = menuItems.filter(({ id }) => id === findMenuId)[0];
-  const configResult = { messages: [], ...config };
+  const configResult = { messages: [{ role: "user", content: "" }], ...config };
   if (configResult) {
     configResult.messages[0].content = configResult.messages[0].content.replace(
       SELECTED_TEXT,
@@ -38,6 +75,11 @@ const fetchConfig = (
         items[menuItemId] + "\n\n" + selectionText;
     }
   });
+  configResult.messages[1] = {
+    role: "developer",
+    content:
+      "use HTML format in response, so it could be used as innerHTLM attribute, use paragraph tags and other HTML tags to make it readable, don't any wrapper symbols like ```",
+  };
   return configResult;
 };
 
@@ -119,17 +161,27 @@ async function sendOpenAIRequest(
     },
     body: JSON.stringify(requestBody),
   });
+
+  // if response is not ok, send error message
   if (!response.ok) {
     console.log("response is broken", response);
     chrome.tabs.sendMessage(tabId, {
       openaiapiERROR: `Network response was not ok. Response status ${response.status}`,
     });
   }
+
   const data = await response.json();
+  const requestPrice = getTransactionPrice(
+    items.model,
+    data?.usage?.prompt_tokens || 0,
+    data?.usage?.completion_tokens || 0
+  );
+
   chrome.tabs.sendMessage(tabId, {
     summary:
       (data?.choices[0]?.message?.content?.trim() || "") +
       (data?.choices[0]?.message?.refusal?.trim() || ""),
+    requestPrice,
   });
 }
 
@@ -181,4 +233,28 @@ function login(interactive = true) {
       resolve(token);
     });
   });
+}
+
+function getModelPrice(
+  model: string,
+  inputTokens: number,
+  outputTokens: number
+) {
+  const modelData = modelPrice[model as keyof typeof modelPrice];
+  return (
+    ((modelData?.input || 0) * inputTokens) / 1000 +
+    (modelData?.output || 0) * outputTokens
+  );
+}
+
+function getTransactionPrice(
+  model: string,
+  inputTokens: number,
+  outputTokens: number
+) {
+  const inputPrice = modelPrice[model as keyof typeof modelPrice]?.input || 0;
+  const outputPrice = modelPrice[model as keyof typeof modelPrice]?.output || 0;
+  const promptPrice = (inputTokens / 1000) * inputPrice;
+  const completionPrice = (outputTokens / 1000) * outputPrice;
+  return promptPrice + completionPrice;
 }
