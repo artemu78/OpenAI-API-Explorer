@@ -13,6 +13,15 @@ type LoginData = {
 
 type FormData = { [key: string]: any };
 
+const MODEL_OPTIONS = [
+  { value: "o1-preview", label: "O1 preview" },
+  { value: "o1-mini", label: "O1 mini" },
+  { value: "gpt-4.1", label: "GPT 4.1" },
+  { value: "gpt-4.1-mini", label: "GPT 4.1 mini" },
+  { value: "gpt-4o", label: "GPT 4o" },
+  { value: "gpt-4o-mini", label: "GPT 4o mini" },
+];
+
 function FillFormWithData(items: FormData) {
   (document.getElementById("apiKey") as HTMLInputElement).value =
     items.openAIKey;
@@ -184,10 +193,28 @@ function showAvatar(data: LoginData) {
 function showLoginButton() {
   (document.getElementById("avatar") as HTMLImageElement).style.display =
     "none";
-  // (document.getElementById("loginButton") as HTMLDivElement).style.display = "block";
+  (document.getElementById("loginButton") as HTMLDivElement).style.display =
+    "block";
+}
+
+function populateModelSelect() {
+  const modelSelect = document.getElementById("model") as HTMLSelectElement;
+  if (modelSelect) {
+    // Clear existing options
+    modelSelect.innerHTML = "";
+
+    // Add options from the MODEL_OPTIONS array
+    MODEL_OPTIONS.forEach((option) => {
+      const optionElement = document.createElement("option");
+      optionElement.value = option.value;
+      optionElement.textContent = option.label;
+      modelSelect.appendChild(optionElement);
+    });
+  }
 }
 
 document.addEventListener("DOMContentLoaded", function () {
+  populateModelSelect();
   document.getElementById("saveButton")?.addEventListener("click", saveOptions);
   document
     .getElementById("clearButton")
@@ -195,15 +222,9 @@ document.addEventListener("DOMContentLoaded", function () {
   document
     .getElementById("loginButton")
     ?.addEventListener("click", () => login());
-  document.getElementById("title")?.addEventListener("dblclick", revealLogin);
   document.getElementById("model")?.addEventListener("change", modelChange);
   restoreControls();
 });
-
-function revealLogin() {
-  document.getElementById("loginButton") &&
-    (document.getElementById("loginButton")!.style.display = "block");
-}
 
 function modelChange(e: Event) {
   const model = (e.target as HTMLSelectElement).value;

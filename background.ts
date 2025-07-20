@@ -6,6 +6,10 @@ import {
 } from "./menu";
 
 const modelPrice = {
+  "o1-pro": {
+    input: 0.15,
+    output: 0.6,
+  },
   o1: {
     input: 0.015,
     output: 0.06,
@@ -18,10 +22,6 @@ const modelPrice = {
     input: 0.015,
     output: 0.06,
   },
-  "gpt-4": {
-    input: 0.03,
-    output: 0.06,
-  },
   "gpt-4o": {
     input: 0.0025,
     c_input: 0.00125,
@@ -32,13 +32,15 @@ const modelPrice = {
     c_input: 0.075,
     output: 0.0006,
   },
-  "gpt-4-turbo": {
-    input: 0.01,
-    output: 0.03,
+  "gpt-4.1": {
+    input: 0.002,
+    c_input: 0.0005,
+    output: 0.008,
   },
-  "gpt-3.5-turbo": {
-    input: 0.0015,
-    output: 0.002,
+  "gpt-4.1-mini": {
+    input: 0.0004,
+    c_input: 0.0001,
+    output: 0.0016,
   },
 };
 
@@ -233,18 +235,6 @@ function login(interactive = true) {
       resolve(token);
     });
   });
-}
-
-function getModelPrice(
-  model: string,
-  inputTokens: number,
-  outputTokens: number
-) {
-  const modelData = modelPrice[model as keyof typeof modelPrice];
-  return (
-    ((modelData?.input || 0) * inputTokens) / 1000 +
-    (modelData?.output || 0) * outputTokens
-  );
 }
 
 function getTransactionPrice(
