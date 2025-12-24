@@ -6,6 +6,34 @@ type SendResponse = (response?: any) => void;
 
 var openaiapiexpPopup: HTMLDivElement | null = null;
 
+// Reference-counting system for body scroll management
+var bodyScrollCounter: number = 0;
+var originalBodyOverflow: string | null = null;
+
+function disableBodyScroll() {
+  bodyScrollCounter++;
+  if (bodyScrollCounter === 1) {
+    // First modal opening - save original overflow and disable scroll
+    originalBodyOverflow = document.body.style.overflow || "";
+    document.body.style.overflow = "hidden";
+  }
+}
+
+function enableBodyScroll() {
+  if (bodyScrollCounter > 0) {
+    bodyScrollCounter--;
+    if (bodyScrollCounter === 0) {
+      // Last modal closed - restore original overflow
+      if (originalBodyOverflow !== null) {
+        document.body.style.overflow = originalBodyOverflow;
+        originalBodyOverflow = null;
+      } else {
+        document.body.style.overflow = "";
+      }
+    }
+  }
+}
+
 chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
   if (request.summary) showResponseModal(request.summary, request.requestPrice);
   if (request.openaiapiWAIT) showWaitModal();
@@ -17,6 +45,9 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
 });
 
 function showPopover(message: string, sendResponse: SendResponse) {
+  // Disable body scroll when opening popover
+  disableBodyScroll();
+
   // Create the modal div and set its class
   var modal = document.createElement("div");
   modal.setAttribute("class", "openapiexpPopover");
@@ -60,31 +91,42 @@ function showPopover(message: string, sendResponse: SendResponse) {
   // Append the modal div to the body
   document.body.appendChild(modal);
 
+  // Helper function to close popover and restore scroll
+  function closePopover() {
+    document.getElementById("openapiexpPopover")?.remove();
+    enableBodyScroll();
+  }
+
   // Event listeners for buttons and closing the modal
   closeButton.onclick = function () {
     sendResponse({ response: "" });
-    document.getElementById("openapiexpPopover")?.remove();
+    closePopover();
   };
 
   cancelButton.onclick = function () {
     sendResponse({ response: "" });
-    document.getElementById("openapiexpPopover")?.remove();
+    closePopover();
   };
 
   askButton.onclick = function () {
     sendResponse({ response: questionInput.value });
-    document.getElementById("openapiexpPopover")?.remove();
+    closePopover();
   };
 
   window.onclick = function (event) {
     if (event.target == modal) {
-      document.getElementById("openapiexpPopover")?.remove();
+      closePopover();
     }
   };
 }
 
 function showWaitModal() {
   let popup = createModal({ x: "150px", y: "150px" });
+  // Prevent scrollbars from appearing during spinner animation
+  popup.style.overflow = "hidden";
+  popup.style.display = "flex";
+  popup.style.alignItems = "center";
+  popup.style.justifyContent = "center";
   let spinner = document.createElement("div");
   spinner.classList.add("openaiapiexploader");
   popup.appendChild(spinner);
@@ -136,6 +178,7 @@ function appendCloseButton(popup: HTMLDivElement) {
   closeButton.textContent = "Close";
   closeButton.onclick = function () {
     document.body.removeChild(popup);
+    enableBodyScroll();
   };
   popup.appendChild(closeButton);
   closeButton.focus();
@@ -172,7 +215,10 @@ function handleCopy(copyButton: HTMLButtonElement) {
 }
 
 function createModal(size: Size) {
-  if (openaiapiexpPopup) openaiapiexpPopup.remove();
+  if (openaiapiexpPopup) {
+    enableBodyScroll();
+    openaiapiexpPopup.remove();
+  }
 
   // Create a new div element for the popup
   openaiapiexpPopup = document.createElement("div");
@@ -187,6 +233,8 @@ function createModal(size: Size) {
   openaiapiexpPopup.style.maxHeight = size.y;
   openaiapiexpPopup.style.maxWidth = size.x;
   openaiapiexpPopup.style.overflow = "auto";
+  // Disable body scroll when modal is shown
+  disableBodyScroll();
 
   chrome.storage.sync.get("theme", function (data) {
     var theme = data.theme || "light";
@@ -228,6 +276,8 @@ let keyFrames =
   width: 50px;\
   height: 50px;\
   animation: spinner 4s linear infinite;\
+  box-sizing: border-box;\
+  flex-shrink: 0;\
 }\
 @keyframes spinner {\
   0% { transform: rotate(0deg); }\
