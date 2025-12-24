@@ -5,6 +5,7 @@ type Size = {
 type SendResponse = (response?: any) => void;
 
 var openaiapiexpPopup: HTMLDivElement | null = null;
+var originalBodyOverflow: string = "";
 
 chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
   if (request.summary) showResponseModal(request.summary, request.requestPrice);
@@ -85,6 +86,11 @@ function showPopover(message: string, sendResponse: SendResponse) {
 
 function showWaitModal() {
   let popup = createModal({ x: "150px", y: "150px" });
+  // Prevent scrollbars from appearing during spinner animation
+  popup.style.overflow = "hidden";
+  popup.style.display = "flex";
+  popup.style.alignItems = "center";
+  popup.style.justifyContent = "center";
   let spinner = document.createElement("div");
   spinner.classList.add("openaiapiexploader");
   popup.appendChild(spinner);
@@ -130,12 +136,19 @@ function createModalWithButton(
   return popup;
 }
 
+function restoreBodyOverflow() {
+  if (originalBodyOverflow !== undefined) {
+    document.body.style.overflow = originalBodyOverflow || "";
+  }
+}
+
 function appendCloseButton(popup: HTMLDivElement) {
   const closeButton = document.createElement("button");
   closeButton.classList.add("responseModalButton");
   closeButton.textContent = "Close";
   closeButton.onclick = function () {
     document.body.removeChild(popup);
+    restoreBodyOverflow();
   };
   popup.appendChild(closeButton);
   closeButton.focus();
@@ -172,7 +185,10 @@ function handleCopy(copyButton: HTMLButtonElement) {
 }
 
 function createModal(size: Size) {
-  if (openaiapiexpPopup) openaiapiexpPopup.remove();
+  if (openaiapiexpPopup) {
+    restoreBodyOverflow();
+    openaiapiexpPopup.remove();
+  }
 
   // Create a new div element for the popup
   openaiapiexpPopup = document.createElement("div");
@@ -187,6 +203,9 @@ function createModal(size: Size) {
   openaiapiexpPopup.style.maxHeight = size.y;
   openaiapiexpPopup.style.maxWidth = size.x;
   openaiapiexpPopup.style.overflow = "auto";
+  // Prevent body scrollbar flickering when modal is shown
+  originalBodyOverflow = document.body.style.overflow || "";
+  document.body.style.overflow = "hidden";
 
   chrome.storage.sync.get("theme", function (data) {
     var theme = data.theme || "light";
@@ -228,6 +247,8 @@ let keyFrames =
   width: 50px;\
   height: 50px;\
   animation: spinner 4s linear infinite;\
+  box-sizing: border-box;\
+  flex-shrink: 0;\
 }\
 @keyframes spinner {\
   0% { transform: rotate(0deg); }\
