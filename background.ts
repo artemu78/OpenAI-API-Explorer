@@ -71,6 +71,7 @@ const fetchConfig = (
     );
   }
 
+  // this is for custom menu items
   ["menuitem1", "menuitem2"].forEach((menuItemId: string) => {
     if (findMenuId === `${MENU_ITEM_PREFIX}${menuItemId}` && configResult) {
       configResult.messages[0].content =
