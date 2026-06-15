@@ -14,7 +14,7 @@
   "scripts": {
     "test": "jest",
     "build": "node build.js",
-    "postbuild": "node bump-version.js"
+    "postbuild": "node bump-version.js && node archive.js"
   },
   "repository": {
     "type": "git",
